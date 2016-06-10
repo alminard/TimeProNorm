@@ -2,7 +2,7 @@
  * Time expression normalization using timenorm (Bethard, 2013)
  * Class used by TimePro
  * @author Anne-Lyse Minard
- * @version 2.4
+ * @version 2.6 (2016-06-10)
  * if no dct, get a date in the first 2 sentences
  */
 
@@ -93,19 +93,19 @@ public class TimeProNormApply {
 	}
 	
 	public static Boolean hasPastBefore (String [][] lines_bef_timex){
-		boolean isPast = false;
+		boolean verbBef = false;
 		for (int i = lines_bef_timex.length-1; i>=0; i--){
-			if(lines_bef_timex[i] != null && lines_bef_timex[i][0] != null && lines_bef_timex[i][colPOS].matches("^V")){
-				if (! lines_bef_timex[i][colPOS].matches("^VVD") && ! isPast){
-					return isPast;
+			if(lines_bef_timex[i] != null && lines_bef_timex[i][0] != null && lines_bef_timex[i][colPOS].startsWith("V")){
+				if (lines_bef_timex[i][colPOS].matches("VVD") && !verbBef){
+					return true;
 				}
-				else{
-					isPast = true;
+				else if(!lines_bef_timex[i][colPOS].matches("VVG")){
+					verbBef = true;
 				}
 			}
 		}
 		
-		return isPast;
+		return false;
 	}
 	
 	/**
@@ -444,6 +444,7 @@ public class TimeProNormApply {
 					for (int s=sentence[0]; s<sentence[1]; s++){
 						if(lines[s] != null && lines[s][colLemma] != null){
 							if(lines[s][colLemma].equals("will")){
+							//if(lines[s][colLemma].equals("will") || !hasPastBefore(Arrays.copyOfRange(lines,sentence[0],i))){ //change 10/06/16
 								isFuture = true;
 							}
 							if(s == (i-1)){
@@ -539,6 +540,13 @@ public class TimeProNormApply {
 					}
 				}
 				
+				if(timex.matches("(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[^ ]* [0-9][0-9]-[0-9][0-9]$")){
+					Pattern p = Pattern.compile("((Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[^ ]* [0-9][0-9])-[0-9][0-9]$");
+					Matcher m = p.matcher(timex);
+					if(m.find()){
+						timex = m.replaceFirst(m.group(1));
+					}
+				}
 				
 				if(!anchorTimeID.equals("tmx0") && !anchorTimeID.equals("")){
 					anchorTime = getValTimexID(anchorTimeID, lines, anchorTime);
@@ -579,6 +587,33 @@ public class TimeProNormApply {
 							java.util.Date d2 = sdf.parse( value );  
 							if (d1.after(d2)){
 								value = v;
+							}
+						}
+						//added 10/06/16
+						else if(v.matches("[0-9][0-9][0-9][0-9]-[0-9][0-9](-[0-9][0-9])?") 
+								&& value.matches("[0-9][0-9][0-9][0-9]-[0-9][0-9](-[0-9][0-9])?")){
+							SimpleDateFormat sdf = new SimpleDateFormat( "yyyy-MM-dd" ); 
+							String newV = v;
+							String newValue = value;
+							if(v.matches("^[0-9][0-9][0-9][0-9]-[0-9][0-9]$")){
+								newV += "-01";
+							}
+							if(value.matches("^[0-9][0-9][0-9][0-9]-[0-9][0-9]$")){
+								newValue += "-01";
+							}
+							java.util.Date d1 = sdf.parse( newV );  	
+							java.util.Date d2 = sdf.parse( newValue );  
+							java.util.Date dctDate = sdf.parse ( dct );
+							if(isFuture && d1.after(d2)){
+								value = v;
+							}
+							else{
+								if(d1.after(dctDate) && d2.before(dctDate) && d1.getTime() - dctDate.getTime() < dctDate.getTime() - d2.getTime()){
+									value = v;
+								}
+								else if(d1.before(dctDate) && d2.after(dctDate) && d2.getTime()-dctDate.getTime() > dctDate.getTime() - d1.getTime()){
+									value = v;
+								}
 							}
 						}
 						/*if(value.matches("[0-9][0-9][0-9][0-9]")
