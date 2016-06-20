@@ -1,8 +1,10 @@
 # TimeProNorm
 
-"""
-cat input_file.txp | java -cp "lib/scala-library.jar:lib/timenorm-0.9.1-SNAPSHOT.jar:lib/threetenbp-0.8.1.jar:lib/TimeProNorm_v2.6.jar" eu.fbk.timePro.TimeProNormApply output_file.txp
-"""
+TimeProNorm is a time normalizer (based on timenorm) that should be run on the output of the time recognition tool timePro. 
+
+
+> cat input_file.txp | java -cp "lib/scala-library.jar:lib/timenorm-0.9.1-SNAPSHOT.jar:lib/threetenbp-0.8.1.jar:lib/TimeProNorm_v2.6.jar" eu.fbk.timePro.TimeProNormApply output_file.txp
+
 
 The input file should contain 6 columns:
 - token
@@ -13,3 +15,5 @@ The input file should contain 6 columns:
 - tags (timex rules)
 - tags (timex rules)
 - Timex (B-DATE, B-DURATION, B-TIME, I-DATE, I-DURATION, I-TIME)
+
+
