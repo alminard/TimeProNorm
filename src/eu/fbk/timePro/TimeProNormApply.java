@@ -548,6 +548,14 @@ public class TimeProNormApply {
 					}
 				}
 				
+				if (timex.matches(".*([0-9 ])(rd|st|th|nd).*")){
+					Pattern p = Pattern.compile(".*([0-9 ])(rd|st|th|nd)( |$)");
+					Matcher m = p.matcher(timex);
+					if(m.find()){
+						timex = timex.replace(m.group(2),"");
+					}
+				}
+				
 				if(!anchorTimeID.equals("tmx0") && !anchorTimeID.equals("")){
 					anchorTime = getValTimexID(anchorTimeID, lines, anchorTime);
 				}
@@ -1704,7 +1712,7 @@ public class TimeProNormApply {
 		// TODO Auto-generated method stub
 		fill_hash_numbers();
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-			
+		
 		String repOutFolder = args[0];
 		String [][] lines = TextProFileFormat.readFileTextPro(br, nbCol, false);
 			
